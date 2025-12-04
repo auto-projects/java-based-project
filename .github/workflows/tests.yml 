@@ -1,18 +1,19 @@
-name: Playwright TestNG CI
+name: Java Playwright TestNG CI
 
+# Manual trigger to ensure workflow appears immediately
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:  # allows manual trigger
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up JDK 17
@@ -21,33 +22,22 @@ jobs:
           java-version: 17
           distribution: temurin
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.m2/repository
-            target
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - name: Install Playwright Browsers
         run: mvn playwright:install
 
-      - name: Run Tests
+      - name: Run Maven Tests
         run: mvn clean test -Denv=ci -Dheadless=true
 
-      - name: Upload TestNG reports
+      - name: Upload TestNG Reports
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: testng-results
           path: target/surefire-reports/
 
-      - name: Upload Allure results
+      - name: Upload Allure Reports
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: allure-results
           path: target/allure-results/
-
